@@ -54,6 +54,11 @@ if [ $NGX_TEST_BUILD_SOLARIS_SENDFILEV = YES ]; then
     CORE_SRCS="$CORE_SRCS $SOLARIS_SENDFILEV_SRCS"
 fi
 
+if [ $NGX_QUIC = YES ]; then
+    have=NGX_QUIC . auto/have
+    HTTP_MODULES="$HTTP_MODULES ngx_http_quic_module"
+    HTTP_SRCS="$HTTP_SRCS src/http/modules/ngx_http_quic_module.c"
+fi
 
 if [ $HTTP != YES ]; then
     have=NGX_CRYPT . auto/nohave
