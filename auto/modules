@@ -56,6 +56,10 @@ fi
 
 if [ $NGX_QUIC = YES ]; then
     have=NGX_QUIC . auto/have
+    CORE_MODULES="$CORE_MODULES $CORE_QUIC_MODULE"
+    CORE_INCS="$CORE_INCS $QUIC_INCS"
+    CORE_DEPS="$CORE_DEPS $QUIC_DEPS"
+    CORE_SRCS="$CORE_SRCS $QUIC_SRCS"
 fi
 
 if [ $HTTP != YES ]; then

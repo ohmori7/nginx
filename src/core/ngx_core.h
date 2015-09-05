@@ -107,4 +107,8 @@ void ngx_cpuinfo(void);
 #define NGX_DISABLE_SYMLINKS_NOTOWNER   2
 #endif
 
+#if (NGX_QUIC)
+#include <quic/ngx_quic.h>
+#endif
+
 #endif /* _NGX_CORE_H_INCLUDED_ */

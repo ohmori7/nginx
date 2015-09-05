@@ -15,6 +15,16 @@ ngx_os_io_t  ngx_io;
 
 static void ngx_drain_connections(void);
 
+#if (NGX_QUIC)
+static ngx_flag_t ngx_listening_is_quic(const ngx_listening_t *ls);
+
+static ngx_flag_t
+ngx_listening_is_quic(const ngx_listening_t *ls)
+{
+
+    return ls->quic;
+}
+#endif
 
 ngx_listening_t *
 ngx_create_listening(ngx_conf_t *cf, void *sockaddr, socklen_t socklen)
@@ -89,6 +99,22 @@ ngx_create_listening(ngx_conf_t *cf, void *sockaddr, socklen_t socklen)
     return ls;
 }
 
+#if (NGX_QUIC)
+ngx_listening_t *
+ngx_create_listening_quic(ngx_conf_t *cf, void *sockaddr, socklen_t socklen)
+{
+    ngx_listening_t *ls;
+
+    ls = ngx_create_listening(cf, sockaddr, socklen);
+    if (ls == NULL)
+        return NULL;
+
+    ls->type = SOCK_DGRAM;
+    ls->quic = 1;
+
+    return ls;
+}
+#endif
 
 ngx_int_t
 ngx_clone_listening(ngx_conf_t *cf, ngx_listening_t *ls)
@@ -272,6 +298,11 @@ ngx_set_inherited_sockets(ngx_cycle_t *cycle)
             ls[i].reuseport = reuseport ? 1 : 0;
         }
 
+#endif
+
+#if (NGX_QUIC)
+        if (ngx_listening_is_quic(&ls[i]))
+	    continue;
 #endif
 
 #if (NGX_HAVE_TCP_FASTOPEN)
@@ -566,7 +597,11 @@ ngx_open_listening_sockets(ngx_cycle_t *cycle)
             }
 #endif
 
-            if (listen(s, ls[i].backlog) == -1) {
+            if (
+#if (NGX_QUIC)
+                ! ngx_listening_is_quic(&ls[i]) &&
+#endif
+                listen(s, ls[i].backlog) == -1) {
                 err = ngx_socket_errno;
 
                 /*
@@ -661,6 +696,11 @@ ngx_configure_listening_sockets(ngx_cycle_t *cycle)
                               ls[i].sndbuf, &ls[i].addr_text);
             }
         }
+
+#if (NGX_QUIC)
+        if (ngx_listening_is_quic(&ls[i]))
+	    continue;
+#endif
 
         if (ls[i].keepalive) {
             value = (ls[i].keepalive == 1) ? 1 : 0;

@@ -73,6 +73,9 @@ struct ngx_listening_s {
     unsigned            add_reuseport:1;
 #endif
     unsigned            keepalive:2;
+#if (NGX_QUIC)
+    unsigned            quic:1;
+#endif
 
 #if (NGX_HAVE_DEFERRED_ACCEPT)
     unsigned            deferred_accept:1;
@@ -209,6 +212,10 @@ struct ngx_connection_s {
 
 ngx_listening_t *ngx_create_listening(ngx_conf_t *cf, void *sockaddr,
     socklen_t socklen);
+#if (NGX_QUIC)
+ngx_listening_t *ngx_create_listening_quic(ngx_conf_t *cf, void *sockaddr,
+    socklen_t socklen);
+#endif
 ngx_int_t ngx_clone_listening(ngx_conf_t *cf, ngx_listening_t *ls);
 ngx_int_t ngx_set_inherited_sockets(ngx_cycle_t *cycle);
 ngx_int_t ngx_open_listening_sockets(ngx_cycle_t *cycle);

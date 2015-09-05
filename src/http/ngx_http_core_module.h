@@ -90,6 +90,9 @@ typedef struct {
 #endif
     unsigned                   so_keepalive:2;
     unsigned                   proxy_protocol:1;
+#if (NGX_QUIC)
+    unsigned                   quic:1;
+#endif
 
     int                        backlog;
     int                        rcvbuf;
@@ -252,6 +255,9 @@ struct ngx_http_addr_conf_s {
     unsigned                   http2:1;
 #endif
     unsigned                   proxy_protocol:1;
+#if (NGX_QUIC)
+    unsigned                   quic:1;
+#endif
 };
 
 

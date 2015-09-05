@@ -189,7 +189,6 @@ ngx_module_t  ngx_event_core_module = {
     NGX_MODULE_V1_PADDING
 };
 
-
 void
 ngx_process_events_and_timers(ngx_cycle_t *cycle)
 {
@@ -564,7 +563,6 @@ ngx_timer_signal_handler(int signo)
 
 #endif
 
-
 static ngx_int_t
 ngx_event_process_init(ngx_cycle_t *cycle)
 {
@@ -741,6 +739,18 @@ ngx_event_process_init(ngx_cycle_t *cycle)
 
         c->listening = &ls[i];
         ls[i].connection = c;
+
+#if (NGX_QUIC)
+        if (ls[i].quic) {
+            rev = c->read;
+            c->recv = ngx_recv;
+            rev->handler = ngx_quic_recv;
+            rev->log = c->log;
+            if (ngx_add_event(rev, NGX_READ_EVENT, 0) == NGX_ERROR)
+                return NGX_ERROR;
+            continue;
+        }
+#endif
 
         rev = c->read;
 

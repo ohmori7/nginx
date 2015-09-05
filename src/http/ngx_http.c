@@ -1236,6 +1236,9 @@ ngx_http_add_addresses(ngx_conf_t *cf, ngx_http_core_srv_conf_t *cscf,
 #if (NGX_HTTP_V2)
     ngx_uint_t             http2;
 #endif
+#if (NGX_QUIC)
+    ngx_flag_t             quic;
+#endif
 
     /*
      * we cannot compare whole sockaddr struct's as kernel
@@ -1293,6 +1296,9 @@ ngx_http_add_addresses(ngx_conf_t *cf, ngx_http_core_srv_conf_t *cscf,
 #if (NGX_HTTP_V2)
         http2 = lsopt->http2 || addr[i].opt.http2;
 #endif
+#if (NGX_QUIC)
+        quic = lsopt->quic || addr[i].opt.quic;
+#endif
 
         if (lsopt->set) {
 
@@ -1326,6 +1332,9 @@ ngx_http_add_addresses(ngx_conf_t *cf, ngx_http_core_srv_conf_t *cscf,
 #endif
 #if (NGX_HTTP_V2)
         addr[i].opt.http2 = http2;
+#endif
+#if (NGX_QUIC)
+        addr[i].opt.quic = quic;
 #endif
 
         return NGX_OK;
@@ -1714,6 +1723,9 @@ ngx_http_init_listening(ngx_conf_t *cf, ngx_http_conf_port_t *port)
             continue;
         }
 
+#if (NGX_QUIC)
+  again:
+#endif
         ls = ngx_http_add_listening(cf, &addr[i]);
         if (ls == NULL) {
             return NGX_ERROR;
@@ -1748,6 +1760,13 @@ ngx_http_init_listening(ngx_conf_t *cf, ngx_http_conf_port_t *port)
             return NGX_ERROR;
         }
 
+#if (NGX_QUIC)
+        if (addr[i].opt.quic) {
+            addr[i].opt.quic = 0; /* XXX: should preserve original value... */
+            goto again;
+        }
+#endif
+
         addr++;
         last--;
     }
@@ -1763,6 +1782,12 @@ ngx_http_add_listening(ngx_conf_t *cf, ngx_http_conf_addr_t *addr)
     ngx_http_core_loc_conf_t  *clcf;
     ngx_http_core_srv_conf_t  *cscf;
 
+#if (NGX_QUIC)
+    if (addr->opt.quic)
+        ls = ngx_create_listening_quic(cf, &addr->opt.u.sockaddr,
+	    addr->opt.socklen);
+    else
+#endif
     ls = ngx_create_listening(cf, &addr->opt.u.sockaddr, addr->opt.socklen);
     if (ls == NULL) {
         return NULL;
